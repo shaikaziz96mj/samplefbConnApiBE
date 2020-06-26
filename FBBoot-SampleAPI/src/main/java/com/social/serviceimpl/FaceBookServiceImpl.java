@@ -8,6 +8,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.social.facebook.api.Account;
 import org.springframework.social.facebook.api.Facebook;
 import org.springframework.social.facebook.api.User;
@@ -111,10 +112,11 @@ public class FaceBookServiceImpl implements FaceBookService {
 	}
 
 	@Override
+	@Scheduled(cron = "* * */1440 * * *")
 	public String saveUserData() {
 		String id=null;
 		String name=null,slToken=null,llToken=null;
-		long expiryTime=0;
+		long expiryTime=0,expiresIn=0;
 		String longToken=null;
 		Facebook facebook=null;
 		JSONParser parser=null;
@@ -135,7 +137,7 @@ public class FaceBookServiceImpl implements FaceBookService {
 			obj=(JSONObject)parser.parse(longToken);
 			llToken=(String)obj.get("access_token");
 			expiryTime=(long)obj.get("expires_in");
-			
+			expiresIn=expiryTime/3600;
 			//System.out.println(id+"\n"+name+"\n"+slToken+"\n"+llToken+"\n"+expiryTime);
 			//save data
 			fbconn=new FbConnections();
@@ -143,7 +145,7 @@ public class FaceBookServiceImpl implements FaceBookService {
 			fbconn.setUserName(name);
 			fbconn.setShortLivedToken(slToken);
 			fbconn.setLongLivedToken(llToken);
-			fbconn.setExpiryTime(expiryTime);
+			fbconn.setExpiryTime(expiresIn);
 			
 			//call save method
 			fbconn=fbRepo.saveAndFlush(fbconn);
